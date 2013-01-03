@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Cross browser jpg image uploader</title>
+        <link rel="stylesheet" href="themes/jquery.mobile-1.2.0.min.css" />
+        <script src="js/jquery.min.js"></script>
+        <script src="js/jquery.mobile-1.2.0.min.js"></script>
+        <script src="js/app.js"></script>
+    </head>
+    <body>
+        <div data-role="page" id="home">
+            <div data-role="content">
+				<form action="submit.php" method="post" data-ajax="false" class="ui-body ui-body-a ui-corner-all" id="imageForm" enctype="multipart/form-data">
+					<fieldset data-role="fieldcontain">
+						<label for="file">Image .jpg:</label>
+						<input type="file" id="file" name="file" onclick="writeList('');" accept="image/jpeg" />
+					</fieldset>
+					<output id="list"></output>
+					<input type="hidden" id="redirect" name="redirect" value="result.html">
+					<textarea id="filename" name="filename" style="display:none"></textarea>
+					<button type="submit" data-theme="b" id="submit" name="submit" value="submit-value" data-icon="check">Upload</button>
+				</form>
+            </div>
+        </div>
+    </body>
+	<script>
+	function writeList(html){
+		document.getElementById('list').innerHTML = html;
+	}
+	
+	function handleFileSelect(evt) {
+		var files = evt.target.files;
+		var f = files[0];
+		if (!f.type.match('image.jpeg')) {		
+			writeList("File extension not supported. Use .jpg image");
+			$("#filename").val('');
+		}
+		else {
+			var reader = new FileReader();
+			reader.onload = (function(theFile) {
+				return function(e) {
+					var span = ['<img id="imgUpload" src="', e.target.result, '" title="', escape(theFile.name), '"/>'].join('');
+					writeList(span);
+					var t = setTimeout(function(){
+						var res = getBase64Image(document.getElementById('imgUpload'));
+						$("#filename").val(res);
+					},1000);
+				};
+			})(f);
+			reader.readAsDataURL(f);
+		}
+	}
+	
+	if (window.File && window.FileReader && window.FileList && window.Blob) {  
+		$('#file').bind('change', handleFileSelect);
+	}
+	
+	function getBase64Image(img) {
+		// Create an empty canvas element
+		var canvas = document.createElement("canvas");
+		canvas.width = img.width;
+		canvas.height = img.height;
+
+		// Copy the image contents to the canvas
+		var ctx = canvas.getContext("2d");
+		ctx.drawImage(img, 0, 0);
+
+		// Get the data-URL formatted image
+		var dataURL = canvas.toDataURL("image/jpeg");
+
+		return dataURL.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+	}
+	
+	$('input[type="file"]').textinput({theme: 'a'});
+	</script>
+</html>
